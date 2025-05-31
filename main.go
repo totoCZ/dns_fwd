@@ -10,7 +10,7 @@ import (
 // Configuration constants
 const (
 	allowedZone = "pod.hetmer.net." // Only rewrite domains from this zone
-	upstreamDNS = "10.0.240.1:53"   // Upstream resolver to query
+	upstreamDNS = "[2a09:e206:c1:ffff::1]:53"   // Upstream resolver to query
 	prefix      = "systemd-"        // Prefix added to the subdomain
 	listenAddr  = ":53"             // Server listening address
 	network     = "udp"             // Network protocol
