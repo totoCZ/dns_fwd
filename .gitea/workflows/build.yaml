@@ -18,7 +18,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           config-inline: |
-            [registry."${{ vars.REGISTRY }}"]
+            [registry."systemd-gitea"]
               http = true
               insecure = true
 
