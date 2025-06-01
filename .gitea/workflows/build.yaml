@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: host
+    runs-on: linux_amd64:host
 
     steps:
       - name: Checkout Code
