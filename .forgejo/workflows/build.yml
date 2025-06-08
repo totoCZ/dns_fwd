@@ -24,12 +24,9 @@ jobs:
           registry: forgejo.pod.hetmer.net
           username: ${{ env.GITHUB_REPOSITORY_OWNER }}
           password: ${{ secrets.REGISTRY_TOKEN }}
-          insecure: true 
 
       - name: Build and Push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
-          context: .
           push: true
-          tags: forgejo.pod.hetmer.net/${{ env.GITHUB_REPOSITORY }}:latest
-          insecure: true
+          tags: http://forgejo.pod.hetmer.net/${{ env.GITHUB_REPOSITORY }}:latest
