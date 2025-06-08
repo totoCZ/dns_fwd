@@ -1,0 +1,6 @@
+pipeline:
+  build:
+    image: docker
+    commands:
+      - docker build -t systemd-forgejo/toto/dns_fwd:latest .
+      - docker push systemd-forgejo/toto/dns_fwd:latest
