@@ -5,6 +5,7 @@ steps:
   build:
     image: docker
     commands:
+      - env
       - docker login forgejo.pod.hetmer.net -u toto -p $DOCKER_PASSWORD 
       - docker build -t forgejo.pod.hetmer.net/toto/dns_fwd:latest .
       - docker push forgejo.pod.hetmer.net/toto/dns_fwd:latest
