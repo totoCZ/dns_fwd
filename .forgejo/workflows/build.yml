@@ -15,18 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Forgejo Registry
-        uses: docker/login-action@v3
+      - name: Build and Push Podman image
+        uses: redhat-actions/buildah-build@v2
         with:
-          registry: http://forgejo.pod.hetmer.net
+          image: ${{ env.GITHUB_REPOSITORY }}
+          tags: latest
+          registry: forgejo.pod.hetmer.net
           username: ${{ env.GITHUB_REPOSITORY_OWNER }}
           password: ${{ secrets.REGISTRY_TOKEN }}
-
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          tags: forgejo.pod.hetmer.net/${{ env.GITHUB_REPOSITORY }}:latest
