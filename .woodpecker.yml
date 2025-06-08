@@ -1,6 +1,7 @@
 steps:
   build:
-    image: docker.io/docker:dind
+    image: docker
     commands:
+      - env
       - docker build -t systemd-forgejo/toto/dns_fwd:latest .
       - docker push systemd-forgejo/toto/dns_fwd:latest
