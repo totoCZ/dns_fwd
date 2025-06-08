@@ -10,8 +10,6 @@ jobs:
   build-and-push:
     runs-on: docker
     container: catthehacker/ubuntu:act-latest
-    env:
-      DOCKER_HOST: ${{ vars.DOCKER_HOST }}
 
     steps:
       - name: Checkout repository
