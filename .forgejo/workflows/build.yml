@@ -21,7 +21,7 @@ jobs:
       - name: Login to Forgejo Registry
         uses: docker/login-action@v3
         with:
-          registry: forgejo.pod.hetmer.net
+          registry: http://forgejo.pod.hetmer.net
           username: ${{ env.GITHUB_REPOSITORY_OWNER }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
@@ -29,4 +29,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: http://forgejo.pod.hetmer.net/${{ env.GITHUB_REPOSITORY }}:latest
+          tags: forgejo.pod.hetmer.net/${{ env.GITHUB_REPOSITORY }}:latest
