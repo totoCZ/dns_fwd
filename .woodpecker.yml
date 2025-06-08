@@ -1,7 +1,10 @@
+when:
+  - event: push
+
 steps:
   build:
     image: docker
     commands:
       - env
-      - docker build -t systemd-forgejo/toto/dns_fwd:latest .
-      - docker push systemd-forgejo/toto/dns_fwd:latest
+      - docker build -t forgejo.pod.hetmer.net/toto/dns_fwd:latest .
+      - docker push forgejo.pod.hetmer.net/toto/dns_fwd:latest
