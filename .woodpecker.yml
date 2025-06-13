@@ -16,7 +16,7 @@ steps:
       - go build -ldflags="-s -w"
 
   publish:
-    image: woodpeckerci/plugin-kaniko
+    image: woodpeckerci/plugin-docker-buildx
     settings:
       repo: ${CI_REPO_OWNER,,}/${CI_REPO_NAME,,}
       tags:
@@ -25,8 +25,8 @@ steps:
       username: ${CI_REPO_OWNER}
       password:
         from_secret: forgejo_token
-      cache: true
-      insecure: true
-      insecure-registry: forgejo.pod.hetmer.net
+      buildkit_config: |
+        [registry."forgejo.pod.hetmer.net"]
+          insecure = true
     when:
       branch: master
