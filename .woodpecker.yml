@@ -11,3 +11,18 @@ steps:
     commands:
       - go get
       - go build -ldflags="-s -w"
+
+  publish:
+    image: woodpeckerci/plugin-kaniko
+    settings:
+      registry: ${CI_REGISTRY}
+      repo: ${CI_REPO_OWNER,,}/${CI_REPO_NAME,,}
+      tags:
+        - latest
+        - ${CI_COMMIT_SHA:0:8}
+      insecure: true
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forgejo_token
+    when:
+      branch: master
