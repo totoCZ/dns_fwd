@@ -10,4 +10,4 @@ steps:
       GOARCH: amd64
     commands:
       - go get
-      - go build
+      - go build -ldflags="-s -w"
