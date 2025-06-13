@@ -16,17 +16,15 @@ steps:
       - go build -ldflags="-s -w"
 
   container:
-    image: quay.io/buildah/stable:latest
+    image: docker.io/taywee/woodpecker-buildah:latest
     privileged: true
+    secrets: [forgejo_token]
     volumes:
       - ci-cache:/var/lib/containers/storage
       - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
-    environment:
-      USERNAME: ${CI_REPO_OWNER}
-      PASSWORD:
+    settings:
+      tag: forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
+      username: ${CI_REPO_OWNER}
+      password:
         from_secret: forgejo_token
-    commands:
-      - buildah login -u "$USERNAME" -p "$PASSWORD" forgejo.pod.hetmer.net
-      - buildah bud -t forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest .
-      - buildah push forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
-
+      registry: forgejo.pod.hetmer.net
