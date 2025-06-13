@@ -18,7 +18,6 @@ steps:
   container:
     image: docker.io/taywee/woodpecker-buildah:latest
     privileged: true
-    secrets: [forgejo_token]
     volumes:
       - ci-cache:/var/lib/containers/storage
       - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
