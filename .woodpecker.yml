@@ -1,6 +1,10 @@
 when:
   - event: push
-  
+
+volumes:
+  - name: ci-cache
+    path: /cache
+
 steps:
   build:
     image: golang
@@ -8,7 +12,13 @@ steps:
       CGO_ENABLED: 0
       GOOS: linux
       GOARCH: amd64
+      GOCACHE: /cache/gocache
+      GOMODCACHE: /cache/gomod
+    volumes:
+      - name: ci-cache
+        path: /cache
     commands:
+      - go env # just for debug~ senpai can remove it later~
       - go get
       - go build -ldflags="-s -w"
 
