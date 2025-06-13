@@ -15,12 +15,13 @@ steps:
   publish:
     image: woodpeckerci/plugin-kaniko
     settings:
-      registry: ${CI_FORGE_URL}
+      registry: forgejo.pod.hetmer.net
       repo: ${CI_REPO_OWNER,,}/${CI_REPO_NAME,,}
       tags:
         - latest
         - ${CI_COMMIT_SHA:0:8}
       insecure: true
+      insecure-registry: forgejo.pod.hetmer.net
       username: ${CI_REPO_OWNER}
       password:
         from_secret: forgejo_token
