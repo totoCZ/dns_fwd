@@ -1,9 +1,5 @@
 when:
-  - event: push
-
-volumes:
-  - name: ci-cache
-    path: /cache
+  event: push
 
 steps:
   build:
@@ -12,13 +8,11 @@ steps:
       CGO_ENABLED: 0
       GOOS: linux
       GOARCH: amd64
-      GOCACHE: /cache/gocache
-      GOMODCACHE: /cache/gomod
+      GOCACHE: /cache/go-build
+      GOMODCACHE: /cache/go-modules
     volumes:
-      - name: ci-cache
-        path: /cache
+      - ci-cache:/cache
     commands:
-      - go env # just for debug~ senpai can remove it later~
       - go get
       - go build -ldflags="-s -w"
 
@@ -35,5 +29,7 @@ steps:
       username: ${CI_REPO_OWNER}
       password:
         from_secret: forgejo_token
+    volumes:
+      - ci-cache:/cache
     when:
       branch: master
