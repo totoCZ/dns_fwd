@@ -16,7 +16,7 @@ steps:
       - go build -ldflags="-s -w"
 
   container:
-    image: docker.io/taywee/woodpecker-buildah:latest
+    image: docker.io/taywee/woodpecker-buildah:amd64
     privileged: true
     volumes:
       - ci-cache:/var/lib/containers/storage
