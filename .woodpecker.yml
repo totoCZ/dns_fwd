@@ -8,10 +8,10 @@ steps:
       CGO_ENABLED: 0
       GOOS: linux
       GOARCH: amd64
-      GOCACHE: /cache/go-build
-      GOMODCACHE: /cache/go-modules
+      GOCACHE: /ci-cache/go-build
+      GOMODCACHE: /ci-cache/go-modules
     volumes:
-      - ci-cache:/cache
+      - ci-cache:/ci-cache
     commands:
       - go get
       - go build -ldflags="-s -w"
@@ -30,6 +30,6 @@ steps:
       password:
         from_secret: forgejo_token
     volumes:
-      - ci-cache:/cache
+      - ci-cache:/ci-cache
     when:
       branch: master
