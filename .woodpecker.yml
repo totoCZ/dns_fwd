@@ -29,3 +29,4 @@ steps:
       - buildah login -u "$USERNAME" -p "$PASSWORD" forgejo.pod.hetmer.net
       - buildah bud -t forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest .
       - buildah push forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
+
