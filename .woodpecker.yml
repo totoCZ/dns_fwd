@@ -28,7 +28,6 @@ steps:
       insecure-registry: forgejo.pod.hetmer.net
       username: ${CI_REPO_OWNER}
       cache: true
-      cache-repo: forgejo.pod.hetmer.net/toto/kaniko-cache
       password:
         from_secret: forgejo_token
     when:
