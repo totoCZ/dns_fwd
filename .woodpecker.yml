@@ -1,0 +1,8 @@
+when:
+  - event: push
+
+steps:
+  backend:
+    image: golang
+    commands:
+      - echo hello world
