@@ -15,19 +15,17 @@ steps:
       - go mod download
       - go build -ldflags="-s -w"
 
-  publish:
-    image: woodpeckerci/plugin-docker-buildx
-    settings:
-      repo: ${CI_REPO_OWNER,,}/${CI_REPO_NAME,,}
-      tags:
-        - latest
-      registry: forgejo.pod.hetmer.net
-      username: ${CI_REPO_OWNER}
-      password:
+  container:
+    image: quay.io/buildah/stable:latest
+    privileged: true
+    volumes:
+      - ci-cache:/var/lib/containers/storage
+      - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
+    environment:
+      USERNAME: ${CI_REPO_OWNER}
+      PASSWORD:
         from_secret: forgejo_token
-      buildkit_config: |
-        [registry."forgejo.pod.hetmer.net"]
-          insecure = true
-    when:
-      branch: master
-      
+    commands:
+      - buildah login -u "$USERNAME" -p "$PASSWORD" forgejo.pod.hetmer.net
+      - buildah bud -t forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest .
+      - buildah push forgejo.pod.hetmer.net/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
