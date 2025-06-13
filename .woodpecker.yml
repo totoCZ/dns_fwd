@@ -5,7 +5,6 @@ steps:
   build:
     image: golang
     environment:
-      CGO_ENABLED: 0
       GOOS: linux
       GOARCH: amd64
       GOCACHE: /ci-cache/go-build
