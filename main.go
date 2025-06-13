@@ -31,7 +31,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	if len(req.Question) == 0 {
-		fmt.Println("\u26a0\ufe0f No questions in query")
+		fmt.Println("⚠️ No questions in query")
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeServerFailure)
 		_ = w.WriteMsg(m)
@@ -44,7 +44,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	normalizedZone := strings.ToLower(h.allowedZone)
 
 	if normalizedName == normalizedZone {
-		fmt.Printf("\ud83d\udcbc Ignoring direct zone query: %s\n", originalName)
+		fmt.Printf("📋 Ignoring direct zone query: %s\n", originalName)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeNameError)
 		m.Ns = append(m.Ns, &dns.SOA{
@@ -67,7 +67,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	if !strings.HasSuffix(normalizedName, "."+normalizedZone) {
-		fmt.Printf("\ud83d\udeab Blocked query: %s (not a subdomain of %s)\n", originalName, h.allowedZone)
+		fmt.Printf("🚫 Blocked query: %s (not a subdomain of %s)\n", originalName, h.allowedZone)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeNameError)
 		_ = w.WriteMsg(m)
@@ -75,7 +75,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	if q.Qtype != dns.TypeA && q.Qtype != dns.TypeAAAA {
-		fmt.Printf("\ud83d\udcbc Ignoring non-A/AAAA query: %s [%d]\n", originalName, q.Qtype)
+		fmt.Printf("📋 Ignoring non-A/AAAA query: %s [%d]\n", originalName, q.Qtype)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeNameError)
 		_ = w.WriteMsg(m)
@@ -84,18 +84,18 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 
 	newName, err := h.rewriteQuery(normalizedName, normalizedZone)
 	if err != nil {
-		fmt.Printf("\u274c Rewrite error: %v\n", err)
+		fmt.Printf("❌ Rewrite error: %v\n", err)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeServerFailure)
 		_ = w.WriteMsg(m)
 		return
 	}
 
-	fmt.Printf("\ud83d\udd04 Rewriting: %s \u279e %s\n", originalName, newName)
+	fmt.Printf("🔄 Rewriting: %s → %s\n", originalName, newName)
 
 	resp, err := forwardQuery(req, newName, h.upstreamDNS)
 	if err != nil {
-		fmt.Printf("\u274c Forward error: %v\n", err)
+		fmt.Printf("❌ Forward error: %v\n", err)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeServerFailure)
 		_ = w.WriteMsg(m)
@@ -156,8 +156,8 @@ func main() {
 	}
 	dns.HandleFunc(".", handler.handleDNS)
 	server := &dns.Server{Addr: listenAddr, Net: network}
-	fmt.Printf("\ud83c\udf38 DNS server is running on %s (%s)...\n", listenAddr, network)
+	fmt.Printf("🌸 DNS server is running on %s (%s)...\n", listenAddr, network)
 	if err := server.ListenAndServe(); err != nil {
-		fmt.Printf("\ud83d\udca5 Server failed: %v\n", err)
+		fmt.Printf("💥 Server failed: %v\n", err)
 	}
 }
