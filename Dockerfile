@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/static-debian12:latest
+FROM gcr.io/distroless/base-nossl-debian12:latest
 
 WORKDIR /app
 
