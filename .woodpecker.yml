@@ -27,6 +27,6 @@ steps:
     commands:
       - export REGISTRY=forgejo.pod.hetmer.net
       - export IMAGE=$REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
-      - buildah login -u "$USERNAME" -p "$PASSWORD" $REGISTRY
+      - buildah login -u "${CI_REPO_OWNER}" -p "$PASSWORD" $REGISTRY
       - buildah bud -t $IMAGE .
       - buildah push $IMAGE
