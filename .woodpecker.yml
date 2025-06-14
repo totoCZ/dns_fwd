@@ -22,8 +22,8 @@ steps:
       - ci-cache:/var/lib/containers/storage
       - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
     environment:
-      IMAGE: $REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
       REGISTRY: forgejo.pod.hetmer.net
+      IMAGE: $REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
       PASSWORD:
         from_secret: forgejo_token
     commands:
