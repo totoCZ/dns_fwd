@@ -26,7 +26,7 @@ steps:
       PASSWORD:
         from_secret: forgejo_token
     commands:
-      - export IMAGE=${REGISTRY}/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
+      - export IMAGE=$${REGISTRY}/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
       - buildah login -u "$CI_REPO_OWNER" -p "$PASSWORD" $REGISTRY
       - buildah bud -t $IMAGE .
       - buildah push $IMAGE
