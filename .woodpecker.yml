@@ -23,7 +23,7 @@ steps:
       - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
     environment:
       REGISTRY: forgejo.pod.hetmer.net
-      IMAGE: $REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
+      IMAGE: ${REGISTRY}/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
       PASSWORD:
         from_secret: forgejo_token
     commands:
