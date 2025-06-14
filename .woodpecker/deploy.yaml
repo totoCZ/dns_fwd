@@ -5,6 +5,6 @@ when:
 
 steps:
   deploy:
-    image: golang
+    image: forgejo.pod.hetmer.net/toto/ubi-ssh
     commands:
       - echo jajaja tacos
