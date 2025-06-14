@@ -1,0 +1,8 @@
+when:
+  event: deployment
+
+steps:
+  deploy:
+    image: golang
+    command:
+      - echo jajaja tacos
