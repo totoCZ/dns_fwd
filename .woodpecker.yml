@@ -22,11 +22,11 @@ steps:
       - ci-cache:/var/lib/containers/storage
       - /etc/containers/registries.conf.d/:/etc/containers/registries.conf.d/
     environment:
-      REGISTRY: forgejo.pod.hetmer.net
       PASSWORD:
         from_secret: forgejo_token
     commands:
-      - export IMAGE=$${REGISTRY}/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
-      - buildah login -u "$CI_REPO_OWNER" -p "$PASSWORD" $REGISTRY
+      - export REGISTRY=forgejo.pod.hetmer.net
+      - export IMAGE=$REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
+      - buildah login -u "$USERNAME" -p "$PASSWORD" $REGISTRY
       - buildah bud -t $IMAGE .
       - buildah push $IMAGE
