@@ -11,6 +11,4 @@ steps:
     commands:
       - echo "$SSH_KEY" > /tmp/deploy_key
       - chmod 600 /tmp/deploy_key
-      - ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no deploybot@host.containers.internal "
-          /usr/local/bin/redeploy-container ${CI_REPO_NAME}
-        "
+      - ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no deploybot@host.containers.internal "redeploy-container ${CI_REPO_NAME}"
