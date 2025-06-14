@@ -126,12 +126,11 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 }
 
 func (h *DNSHandler) rewriteQuery(normalizedName, normalizedZone string) (string, error) {
-	subdomain := strings.TrimSuffix(normalizedName, "."+normalizedZone)
-	subdomain = strings.TrimSuffix(subdomain, ".")
-	if subdomain == "" {
-		return "", fmt.Errorf("empty subdomain after trimming zone")
-	}
-	return h.prefix + subdomain + ".", nil
+    subdomain := strings.TrimSuffix(normalizedName, "."+normalizedZone)
+    if subdomain == "" {
+        return "", fmt.Errorf("empty subdomain after trimming zone")
+    }
+    return h.prefix + subdomain + ".", nil
 }
 
 func forwardQuery(originalReq *dns.Msg, name string, upstreamDNS string) (*dns.Msg, error) {
