@@ -1,8 +1,10 @@
 when:
   event: deployment
+  branch: ${CI_REPO_DEFAULT_BRANCH}
+
 
 steps:
   deploy:
     image: golang
-    command:
+    commands:
       - echo jajaja tacos
