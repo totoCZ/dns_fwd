@@ -20,18 +20,16 @@ A tiny custom DNS proxy written in Go~! 🐾 It listens for A and AAAA queries i
 5. Response is returned to the client
 
 ## ⚙️ Configuration
-You can tweak these constants in `main.go`:
+You can tweak it using env vars:
 
-```go
-const (
-    allowedZone = "pod.hetmer.net."
-    upstreamDNS = "[2a09:e206:c1:ffff::1]:53"
-    prefix      = "systemd-"
-    listenAddr  = ":53"
-    network     = "udp"
-    negativeTTL = 60
-    answerTTL   = 300
-)
+```bash
+export ALLOWED_ZONE="pod.example.com."
+export UPSTREAM_DNS="192.168.1.1:53"
+export PREFIX="kawaii-"
+export LISTEN_ADDR=":53"
+export NETWORK="udp"
+export NEGATIVE_TTL=60
+export ANSWER_TTL=300
 ```
 
 ## 🚀 Running
