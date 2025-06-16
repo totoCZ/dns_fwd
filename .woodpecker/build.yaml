@@ -20,6 +20,8 @@ steps:
     environment:
       PASSWORD:
         from_secret: forgejo_token
+      PASSWORD_GITHUB:
+        from_secret: github_login
     commands:
       - export REGISTRY=forgejo.pod.hetmer.net
       - export IMAGE=$REGISTRY/${CI_REPO_OWNER}/${CI_REPO_NAME}:latest
