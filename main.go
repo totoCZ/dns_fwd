@@ -2,25 +2,38 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/miekg/dns"
-)
-
-const (
-	allowedZone = "pod.hetmer.net."
-	upstreamDNS = "[2a09:e206:c1:ffff::1]:53"
-	prefix      = "systemd-"
-	listenAddr  = ":53"
-	network     = "udp"
-	negativeTTL = 60   // 1 minute
-	answerTTL   = 300  // 5 minutes
 )
 
 type DNSHandler struct {
 	allowedZone string
 	prefix      string
 	upstreamDNS string
+	negativeTTL uint32
+	answerTTL   uint32
+	listenAddr  string
+	network     string
+}
+
+func getEnvWithDefault(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists && value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvUint32WithDefault(key string, defaultValue uint32) uint32 {
+	if value, exists := os.LookupEnv(key); exists && value != "" {
+		var result uint32
+		_, err := fmt.Sscanf(value, "%d", &result)
+		if err == nil {
+			return result
+		}
+	}
+	return defaultValue
 }
 
 func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
@@ -41,7 +54,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	q := req.Question[0]
 	originalName := q.Name
 	normalizedName := strings.ToLower(originalName)
-	normalizedZone := strings.ToLower(h.allowedZone)
+	normalizedZone := h.allowedZone
 
 	if normalizedName == normalizedZone {
 		fmt.Printf("📋 Ignoring direct zone query: %s\n", originalName)
@@ -52,7 +65,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 				Name:   h.allowedZone,
 				Rrtype: dns.TypeSOA,
 				Class:  dns.ClassINET,
-				Ttl:    negativeTTL,
+				Ttl:    h.negativeTTL,
 			},
 			Ns:      "dns-pod.hetmer.net.",
 			Mbox:    "pod.hetmer.net.",
@@ -60,7 +73,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 			Refresh: 3600,
 			Retry:   600,
 			Expire:  86400,
-			Minttl:  negativeTTL,
+			Minttl:  h.negativeTTL,
 		})
 		_ = w.WriteMsg(m)
 		return
@@ -106,19 +119,19 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	for i, ans := range resp.Answer {
 		if strings.EqualFold(ans.Header().Name, newName) {
 			resp.Answer[i].Header().Name = originalName
-			resp.Answer[i].Header().Ttl = answerTTL
+			resp.Answer[i].Header().Ttl = h.answerTTL
 		}
 	}
 	for i, ns := range resp.Ns {
 		if strings.EqualFold(ns.Header().Name, newName) {
 			resp.Ns[i].Header().Name = originalName
-			resp.Ns[i].Header().Ttl = answerTTL
+			resp.Ns[i].Header().Ttl = h.answerTTL
 		}
 	}
 	for i, extra := range resp.Extra {
 		if strings.EqualFold(extra.Header().Name, newName) {
 			resp.Extra[i].Header().Name = originalName
-			resp.Extra[i].Header().Ttl = answerTTL
+			resp.Extra[i].Header().Ttl = h.answerTTL
 		}
 	}
 
@@ -126,11 +139,11 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 }
 
 func (h *DNSHandler) rewriteQuery(normalizedName, normalizedZone string) (string, error) {
-    subdomain := strings.TrimSuffix(normalizedName, "."+normalizedZone)
-    if subdomain == "" {
-        return "", fmt.Errorf("empty subdomain after trimming zone")
-    }
-    return h.prefix + subdomain + ".", nil
+	subdomain := strings.TrimSuffix(normalizedName, "."+normalizedZone)
+	if subdomain == "" {
+		return "", fmt.Errorf("empty subdomain after trimming zone")
+	}
+	return h.prefix + subdomain + ".", nil
 }
 
 func forwardQuery(originalReq *dns.Msg, name string, upstreamDNS string) (*dns.Msg, error) {
@@ -149,13 +162,17 @@ func forwardQuery(originalReq *dns.Msg, name string, upstreamDNS string) (*dns.M
 
 func main() {
 	handler := &DNSHandler{
-		allowedZone: allowedZone,
-		prefix:      prefix,
-		upstreamDNS: upstreamDNS,
+		allowedZone: getEnvWithDefault("ALLOWED_ZONE", "pod.hetmer.net."),
+		prefix:      getEnvWithDefault("PREFIX", "systemd-"),
+		upstreamDNS: getEnvWithDefault("UPSTREAM_DNS", "[2a09:e206:c1:ffff::1]:53"),
+		negativeTTL: getEnvUint32WithDefault("NEGATIVE_TTL", 60),
+		answerTTL:   getEnvUint32WithDefault("ANSWER_TTL", 300),
+		listenAddr:  getEnvWithDefault("LISTEN_ADDR", ":53"),
+		network:     getEnvWithDefault("NETWORK", "udp"),
 	}
 	dns.HandleFunc(".", handler.handleDNS)
-	server := &dns.Server{Addr: listenAddr, Net: network}
-	fmt.Printf("🌸 DNS server is running on %s (%s)...\n", listenAddr, network)
+	server := &dns.Server{Addr: handler.listenAddr, Net: handler.network}
+	fmt.Printf("🌸 DNS server is running on %s (%s)...\n", handler.listenAddr, handler.network)
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Printf("💥 Server failed: %v\n", err)
 	}
