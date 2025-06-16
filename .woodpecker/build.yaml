@@ -26,3 +26,5 @@ steps:
       - buildah login -u "${CI_REPO_OWNER}" -p "$PASSWORD" $REGISTRY
       - buildah bud -t $IMAGE .
       - buildah push $IMAGE
+      - buildah login -u totoCZ -p "$PASSWORD_GITHUB" ghcr.io
+      - buildah push $IMAGE docker://ghcr.io/totocz/${CI_REPO_NAME}:latest
