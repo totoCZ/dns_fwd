@@ -36,15 +36,33 @@ func getEnvUint32WithDefault(key string, defaultValue uint32) uint32 {
 	return defaultValue
 }
 
+// Helper function to create the correct local SOA record
+func (h *DNSHandler) createLocalSOA() *dns.SOA {
+	return &dns.SOA{
+		Hdr: dns.RR_Header{
+			Name:   h.allowedZone,
+			Rrtype: dns.TypeSOA,
+			Class:  dns.ClassINET,
+			Ttl:    h.negativeTTL, // Use the configured TTL for the SOA record itself
+		},
+		Ns:      "dns-pod.hetmer.net.",
+		Mbox:    "pod.hetmer.net.",
+		Serial:  1,
+		Refresh: 3600,
+		Retry:   600,
+		Expire:  86400,
+		Minttl:  h.negativeTTL, // Crucial for defining the negative cache TTL
+	}
+}
+
 func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	// Strip DO bit if present, since we don't support DNSSEC
 	if opt := req.IsEdns0(); opt != nil {
-		opt.Do() // ensure the bit is visible
 		opt.SetDo(false)
 	}
 
 	if len(req.Question) == 0 {
-		fmt.Println("⚠️ No questions in query")
+		fmt.Println("⚠ No questions in query")
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeServerFailure)
 		_ = w.WriteMsg(m)
@@ -56,25 +74,22 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 	normalizedName := strings.ToLower(originalName)
 	normalizedZone := h.allowedZone
 
+	// --- FIX 1: Correctly respond to direct zone queries (SOA) ---
 	if normalizedName == normalizedZone {
-		fmt.Printf("📋 Ignoring direct zone query: %s\n", originalName)
+		fmt.Printf("📋 Direct zone query: %s. Responding with local SOA.\n", originalName)
 		m := new(dns.Msg)
-		m.SetRcode(req, dns.RcodeNameError)
-		m.Ns = append(m.Ns, &dns.SOA{
-			Hdr: dns.RR_Header{
-				Name:   h.allowedZone,
-				Rrtype: dns.TypeSOA,
-				Class:  dns.ClassINET,
-				Ttl:    h.negativeTTL,
-			},
-			Ns:      "dns-pod.hetmer.net.",
-			Mbox:    "pod.hetmer.net.",
-			Serial:  1,
-			Refresh: 3600,
-			Retry:   600,
-			Expire:  86400,
-			Minttl:  h.negativeTTL,
-		})
+		
+		// If requesting the SOA record specifically, put it in the ANSWER section.
+		if q.Qtype == dns.TypeSOA {
+			m.SetRcode(req, dns.RcodeSuccess)
+			m.Answer = append(m.Answer, h.createLocalSOA())
+		} else {
+			// For any other query type (A, AAAA, etc.) for the zone apex, 
+			// return NOERROR with no data (NODATA) and the SOA in the Authority section.
+			m.SetRcode(req, dns.RcodeSuccess)
+			m.Ns = append(m.Ns, h.createLocalSOA())
+		}
+		
 		_ = w.WriteMsg(m)
 		return
 	}
@@ -83,6 +98,8 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 		fmt.Printf("🚫 Blocked query: %s (not a subdomain of %s)\n", originalName, h.allowedZone)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeNameError)
+		// For an outright blocked query, assert authority with your SOA as well!
+		m.Ns = append(m.Ns, h.createLocalSOA()) 
 		_ = w.WriteMsg(m)
 		return
 	}
@@ -91,6 +108,7 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 		fmt.Printf("📋 Ignoring non-A/AAAA query: %s [%d]\n", originalName, q.Qtype)
 		m := new(dns.Msg)
 		m.SetRcode(req, dns.RcodeNameError)
+		m.Ns = append(m.Ns, h.createLocalSOA()) // Add SOA for negative caching
 		_ = w.WriteMsg(m)
 		return
 	}
@@ -115,13 +133,28 @@ func (h *DNSHandler) handleDNS(w dns.ResponseWriter, req *dns.Msg) {
 		return
 	}
 
+	// --- FIX 2: Check for NXDOMAIN and replace the Authority Section ---
+	if resp.Rcode == dns.RcodeNameError {
+		fmt.Printf("✅ Upstream returned NXDOMAIN for %s. Asserting local authority for negative caching.\n", newName)
+		
+		// Clear the upstream's Authority Section (removes the public/root SOA)
+		resp.Ns = []dns.RR{} 
+		
+		// Add your local SOA to the Authority Section to enforce local TTL
+		resp.Ns = append(resp.Ns, h.createLocalSOA()) 
+	} 
+	
 	resp.SetReply(req)
+	
+	// Apply header and TTL rewrites
 	for i, ans := range resp.Answer {
 		if strings.EqualFold(ans.Header().Name, newName) {
 			resp.Answer[i].Header().Name = originalName
 			resp.Answer[i].Header().Ttl = h.answerTTL
 		}
 	}
+	// Rewriting Authority and Extra sections' names for glue records is less critical here,
+	// but keeping the logic to overwrite TTLs for cleanliness.
 	for i, ns := range resp.Ns {
 		if strings.EqualFold(ns.Header().Name, newName) {
 			resp.Ns[i].Header().Name = originalName
