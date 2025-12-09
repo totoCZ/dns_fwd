@@ -4,11 +4,12 @@ A tiny custom DNS proxy written in Go~! 🐾 It listens for A and AAAA queries i
 
 ## ✨ Features
 - Listens on UDP port 53
-- Only accepts queries for `*.pod.hetmer.net.`
+- Only accepts queries for `*.pod.hetmer.net.` or any number of subs
 - Rewrites query names with a prefix (e.g., `systemd-`)
-- Forwards the rewritten query to an upstream IPv6 DNS server
+- Forwards the rewritten query to an upstream DNS server
 - Rejects non-A/AAAA queries and invalid zones
 - Adds TTLs and fixes up response names for compatibility
+- Properly handles SOA from upstream and negative caching
 
 ## 🧙 How It Works
 1. Incoming query is checked:
@@ -23,11 +24,10 @@ A tiny custom DNS proxy written in Go~! 🐾 It listens for A and AAAA queries i
 You can tweak it using env vars:
 
 ```bash
-export ALLOWED_ZONE="pod.example.com."
-export UPSTREAM_DNS="192.168.1.1:53"
-export PREFIX="kawaii-"
+export ZONES=pod.hetmer.net.=udp:[ip]:53,net2.hetmer.net.=udp:10.42.0.1:53
+#export ZONES=pod.hetmer.net.=systemd-:udp:[ip]:53 # with prefix
+export DEFAULT_PREFIX="kawaii-"
 export LISTEN_ADDR=":53"
-export NETWORK="udp"
 export NEGATIVE_TTL=60
 export ANSWER_TTL=300
 ```
